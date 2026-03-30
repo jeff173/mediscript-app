@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MediScript — Smart Prescription Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --mint: #00C9A7;
+  --mint-light: #E6FAF6;
+  --navy: #0D1B2A;
+  --navy-mid: #1B2E42;
+  --slate: #3D5A73;
+  --sky: #E8F4FD;
+  --cream: #FAFAF7;
+  --warm: #FFF8F0;
+  --pill-yellow: #FFD166;
+  --pill-red: #EF476F;
+  --pill-blue: #118AB2;
+  --pill-green: #06D6A0;
+  --pill-orange: #FF6B35;
+  --pill-purple: #7B2D8B;
+  --text: #1A2B3C;
+  --text-muted: #6B7E8F;
+  --border: #DDE8F0;
+  --shadow: 0 4px 24px rgba(13,27,42,0.08);
+  --shadow-lg: 0 12px 48px rgba(13,27,42,0.14);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: var(--navy);
+  padding: 18px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo-icon {
+  width: 38px; height: 38px;
+  background: var(--mint);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.logo-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+.logo-sub { font-size: 11px; color: var(--mint); letter-spacing: 2px; text-transform: uppercase; }
+.header-actions { display: flex; gap: 12px; }
+.btn-print {
+  background: var(--mint);
+  color: var(--navy);
+  border: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transition: all 0.2s;
+}
+.btn-print:hover { background: #00E5BF; transform: translateY(-1px); }
+.btn-clear {
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #334;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-clear:hover { border-color: var(--pill-red); color: var(--pill-red); }
+
+/* ── LAYOUT ── */
+.app-body {
+  display: grid;
+  grid-template-columns: 480px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 66px);
+}
+
+/* ── LEFT PANEL — FORM ── */
+.form-panel {
+  background: #fff;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 28px 28px 40px;
+}
+
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px;
+  color: var(--navy);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title span.pill-tag {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  background: var(--mint-light);
+  color: var(--mint);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.card {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-row.single { grid-template-columns: 1fr; }
+.form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+input[type="text"], input[type="date"], input[type="number"], select, textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: #fff;
+  transition: border-color 0.2s;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--mint); box-shadow: 0 0 0 3px rgba(0,201,167,0.12); }
+textarea { resize: vertical; min-height: 60px; }
+
+/* Tablet entry */
+.tablet-entry {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 14px;
+  position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.tablet-entry:hover { border-color: var(--mint); box-shadow: 0 2px 12px rgba(0,201,167,0.1); }
+.tablet-entry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.tablet-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mint);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.remove-btn {
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.remove-btn:hover { color: var(--pill-red); background: #FFF0F3; }
+
+/* Color picker for tablet */
+.color-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.color-swatch {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.color-swatch:hover { transform: scale(1.15); }
+.color-swatch.selected { border-color: var(--navy); transform: scale(1.1); }
+
+/* Dosage timing grid */
+.timing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.timing-card {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
+}
+.timing-card:hover { border-color: var(--mint); }
+.timing-card.active { border-color: var(--mint); background: var(--mint-light); }
+.timing-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+.timing-label { font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.5px; }
+.timing-card.active .timing-label { color: var(--mint); }
+.timing-input-small {
+  width: 100%;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--text);
+}
+.timing-input-small:focus { outline: none; border-color: var(--mint); }
+
+/* Food timing */
+.food-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.food-btn {
+  flex: 1;
+  padding: 9px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.food-btn:hover { border-color: var(--mint); color: var(--mint); }
+.food-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+.add-tablet-btn {
+  width: 100%;
+  padding: 13px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  background: none;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.add-tablet-btn:hover { border-color: var(--mint); color: var(--mint); background: var(--mint-light); }
+
+/* ── RIGHT PANEL — PREVIEW ── */
+.preview-panel {
+  background: var(--sky);
+  padding: 32px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.preview-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+.preview-label::before, .preview-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* PRESCRIPTION CARD */
+.rx-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 680px;
+  overflow: hidden;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.rx-header {
+  background: var(--navy);
+  padding: 28px 32px 24px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.rx-header::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; right: -30px;
+  width: 120px; height: 120px;
+  background: rgba(0,201,167,0.12);
+  border-radius: 50%;
+}
+.rx-header::before {
+  content: '';
+  position: absolute;
+  top: -20px; right: 80px;
+  width: 80px; height: 80px;
+  background: rgba(0,201,167,0.08);
+  border-radius: 50%;
+}
+
+.rx-symbol {
+  font-family: 'DM Serif Display', serif;
+  font-size: 48px;
+  color: var(--mint);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.rx-clinic { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+.rx-doctor { font-size: 13px; color: rgba(255,255,255,0.65); }
+.rx-doctor span { color: rgba(255,255,255,0.9); }
+
+.rx-info-bar {
+  background: var(--mint-light);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.rx-info-item { }
+.rx-info-label { font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+.rx-info-value { font-size: 13px; font-weight: 600; color: var(--text); }
+
+.rx-body { padding: 24px 32px 28px; }
+
+.rx-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rx-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* Tablet card in preview */
+.rx-tablet {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+  transition: box-shadow 0.2s;
+}
+.rx-tablet:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+
+.tablet-visual {
+  flex-shrink: 0;
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  position: relative;
+}
+.tablet-pill-shape {
+  width: 44px; height: 22px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.5px;
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.2);
+  position: relative;
+  overflow: hidden;
+}
+.tablet-pill-shape::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 4px; right: 4px;
+  height: 6px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 4px;
+}
+
+.rx-tablet-info { flex: 1; }
+.rx-tablet-name { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+.rx-tablet-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+
+.rx-dosage-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.dosage-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+}
+.dosage-badge.morning { background: #FFF8E7; border-color: #FFD166; color: #A07000; }
+.dosage-badge.afternoon { background: #FFF0E8; border-color: #FF9A5C; color: #C05000; }
+.dosage-badge.night { background: #EEF0FF; border-color: #8B9CF4; color: #3040C0; }
+.dosage-icon { font-size: 13px; }
+
+.food-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.food-badge.before { background: #FFF0F3; color: #C0204A; border: 1px solid #F8C0CF; }
+.food-badge.after { background: #F0FBF7; color: #107050; border: 1px solid #B0E8D0; }
+.food-badge.with { background: #F0F4FF; color: #204090; border: 1px solid #B8C8F8; }
+
+.rx-footer {
+  background: var(--navy);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rx-footer-note { font-size: 11px; color: rgba(255,255,255,0.5); }
+.rx-footer-sig { font-family: 'DM Serif Display', serif; font-size: 15px; color: var(--mint); }
+
+.rx-notes-box {
+  background: var(--warm);
+  border: 1px solid #FFE4C0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+/* Empty state */
+.empty-preview {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+.empty-preview .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-preview p { font-size: 13px; line-height: 1.6; }
+
+/* ── PRINT STYLES ── */
+@media print {
+  body * { visibility: hidden; }
+  .rx-card, .rx-card * { visibility: visible; }
+  .rx-card {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .app-header, .form-panel, .preview-label, .btn-print, .btn-clear { display: none !important; }
+  .preview-panel { padding: 0; background: white; }
+  .app-body { grid-template-columns: 1fr; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-icon">💊</div>
+    <div>
+      <div class="logo-text">MediScript</div>
+      <div class="logo-sub">Prescription Builder</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-clear" onclick="clearAll()">🗑 Clear All</button>
+    <button class="btn-print" onclick="window.print()">🖨 Print Prescription</button>
+  </div>
+</header>
+
+<div class="app-body">
+
+  <!-- ── FORM PANEL ── -->
+  <div class="form-panel">
+
+    <!-- Doctor Info -->
+    <div class="card">
+      <div class="section-title">👨‍⚕️ Doctor Information <span class="pill-tag">CLINIC</span></div>
+      <div class="form-row">
+        <div>
+          <label>Doctor Name</label>
+          <input type="text" id="doctorName" placeholder="Dr. Firstname Lastname" oninput="updatePreview()"/>
+        </div>
+        <div>
+          <label>Specialisation</label>
+          <input type="text" id="doctorSpec" placeholder="e.g. General Physician" oninput="updatePreview()"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Clinic / Hospital</label>
+          <input type="text" id="clinicName" placeholder="Clinic Name" oninput="updatePreview()"/>
+        </div>
+        <div>
+          <label>Contact / Reg. No.</label>
+          <input type="text" id="doctorContact" placeholder="Phone or Reg No." oninput="updatePreview()"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patient Info -->
+    <div class="card">
+      <div class="section-title">🧑 Patient Information</div>
+      <div class="form-row">
+        <div>
+          <label>Patient Name</label>
+          <input type="text" id="patientName" placeholder="Full Name" oninput="updatePreview()"/>
+        </div>
+        <div>
+          <label>Age / Gender</label>
+          <input type="text" id="patientAge" placeholder="e.g. 45 / Male" oninput="updatePreview()"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Date</label>
+          <input type="date" id="rxDate" oninput="updatePreview()"/>
+        </div>
+        <div>
+          <label>Diagnosis / Condition</label>
+          <input type="text" id="diagnosis" placeholder="e.g. Hypertension" oninput="updatePreview()"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tablets -->
+    <div class="section-title">💊 Medications <span class="pill-tag">ADD TABLETS</span></div>
+    <div id="tabletList"></div>
+    <button class="add-tablet-btn" onclick="addTablet()">＋ Add Medication</button>
+
+    <!-- Notes -->
+    <div class="card" style="margin-top:20px;">
+      <div class="section-title">📋 Doctor's Notes</div>
+      <div class="form-row single">
+        <div>
+          <label>Instructions / Advice</label>
+          <textarea id="doctorNotes" placeholder="e.g. Drink plenty of water. Avoid spicy food. Rest well. Follow-up in 7 days." oninput="updatePreview()"></textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── PREVIEW PANEL ── -->
+  <div class="preview-panel">
+    <div class="preview-label">Live Prescription Preview</div>
+    <div id="rxPreview" style="width:100%;max-width:680px;"></div>
+  </div>
+
+</div>
+
+<script>
+const COLORS = [
+  { hex: '#EF476F', name: 'Red' },
+  { hex: '#FFD166', name: 'Yellow' },
+  { hex: '#118AB2', name: 'Blue' },
+  { hex: '#06D6A0', name: 'Green' },
+  { hex: '#FF6B35', name: 'Orange' },
+  { hex: '#7B2D8B', name: 'Purple' },
+  { hex: '#9E9E9E', name: 'Grey' },
+  { hex: '#F8BBD0', name: 'Pink' },
+];
+
+let tablets = [];
+let tabletCounter = 0;
+
+function addTablet() {
+  tabletCounter++;
+  const id = Date.now();
+  tablets.push({
+    id,
+    num: tabletCounter,
+    name: '',
+    description: '',
+    color: COLORS[0].hex,
+    morning: '', afternoon: '', night: '',
+    food: 'after',
+    duration: '',
+  });
+  renderTabletForms();
+  updatePreview();
+}
+
+function removeTablet(id) {
+  tablets = tablets.filter(t => t.id !== id);
+  renderTabletForms();
+  updatePreview();
+}
+
+function setTabletProp(id, prop, val) {
+  const t = tablets.find(t => t.id === id);
+  if (t) { t[prop] = val; updatePreview(); }
+}
+
+function renderTabletForms() {
+  const list = document.getElementById('tabletList');
+  list.innerHTML = '';
+  tablets.forEach((t, idx) => {
+    const div = document.createElement('div');
+    div.className = 'tablet-entry';
+    div.innerHTML = `
+      <div class="tablet-entry-header">
+        <span class="tablet-num">Medication ${idx + 1}</span>
+        <button class="remove-btn" onclick="removeTablet(${t.id})" title="Remove">✕</button>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label>Tablet / Medicine Name</label>
+          <input type="text" value="${t.name}" placeholder="e.g. Paracetamol 500mg"
+            oninput="setTabletProp(${t.id},'name',this.value)"/>
+        </div>
+        <div>
+          <label>Short Description</label>
+          <input type="text" value="${t.description}" placeholder="e.g. For fever & pain"
+            oninput="setTabletProp(${t.id},'description',this.value)"/>
+        </div>
+      </div>
+
+      <label>Tablet Colour</label>
+      <div class="color-row" style="margin-bottom:14px;">
+        ${COLORS.map(c => `
+          <div class="color-swatch ${t.color === c.hex ? 'selected' : ''}"
+            style="background:${c.hex}"
+            title="${c.name}"
+            onclick="selectColor(${t.id},'${c.hex}',this)">
+          </div>`).join('')}
+      </div>
+
+      <label>Dosage Schedule</label>
+      <div class="timing-grid">
+        <div class="timing-card ${t.morning ? 'active' : ''}" onclick="toggleTiming(${t.id},'morning',this)">
+          <span class="timing-icon">🌅</span>
+          <div class="timing-label">Morning</div>
+          <input class="timing-input-small" type="text" placeholder="e.g. 1 tablet"
+            value="${t.morning}"
+            onclick="event.stopPropagation()"
+            oninput="setTabletProp(${t.id},'morning',this.value); this.closest('.timing-card').classList.toggle('active', !!this.value)"/>
+        </div>
+        <div class="timing-card ${t.afternoon ? 'active' : ''}" onclick="toggleTiming(${t.id},'afternoon',this)">
+          <span class="timing-icon">☀️</span>
+          <div class="timing-label">Afternoon</div>
+          <input class="timing-input-small" type="text" placeholder="e.g. 1 tablet"
+            value="${t.afternoon}"
+            onclick="event.stopPropagation()"
+            oninput="setTabletProp(${t.id},'afternoon',this.value); this.closest('.timing-card').classList.toggle('active', !!this.value)"/>
+        </div>
+        <div class="timing-card ${t.night ? 'active' : ''}" onclick="toggleTiming(${t.id},'night',this)">
+          <span class="timing-icon">🌙</span>
+          <div class="timing-label">Night</div>
+          <input class="timing-input-small" type="text" placeholder="e.g. 1 tablet"
+            value="${t.night}"
+            onclick="event.stopPropagation()"
+            oninput="setTabletProp(${t.id},'night',this.value); this.closest('.timing-card').classList.toggle('active', !!this.value)"/>
+        </div>
+      </div>
+
+      <label>Food Timing</label>
+      <div class="food-toggle">
+        <button class="food-btn ${t.food==='before'?'active':''}" onclick="setFood(${t.id},'before',this.closest('.food-toggle'))">🍽 Before Food</button>
+        <button class="food-btn ${t.food==='after'?'active':''}" onclick="setFood(${t.id},'after',this.closest('.food-toggle'))">✅ After Food</button>
+        <button class="food-btn ${t.food==='with'?'active':''}" onclick="setFood(${t.id},'with',this.closest('.food-toggle'))">🥗 With Food</button>
+      </div>
+
+      <div class="form-row single">
+        <div>
+          <label>Duration</label>
+          <input type="text" value="${t.duration}" placeholder="e.g. 5 days / 1 week / Continue"
+            oninput="setTabletProp(${t.id},'duration',this.value)"/>
+        </div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function selectColor(id, hex, el) {
+  setTabletProp(id, 'color', hex);
+  el.closest('.color-row').querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function toggleTiming(id, field, card) {
+  const inp = card.querySelector('input');
+  if (!inp.value) { inp.value = '1 tablet'; setTabletProp(id, field, '1 tablet'); }
+  card.classList.toggle('active', !!inp.value);
+}
+
+function setFood(id, val, container) {
+  setTabletProp(id, 'food', val);
+  container.querySelectorAll('.food-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function getVal(id) { return (document.getElementById(id)||{}).value || ''; }
+
+function formatDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function getInitials(name) {
+  if (!name) return 'Rx';
+  return name.split(' ').filter(Boolean).map(n=>n[0]).join('').toUpperCase().slice(0,2);
+}
+
+function updatePreview() {
+  const doctorName = getVal('doctorName');
+  const doctorSpec = getVal('doctorSpec');
+  const clinicName = getVal('clinicName');
+  const doctorContact = getVal('doctorContact');
+  const patientName = getVal('patientName');
+  const patientAge = getVal('patientAge');
+  const rxDate = getVal('rxDate');
+  const diagnosis = getVal('diagnosis');
+  const notes = getVal('doctorNotes');
+
+  const preview = document.getElementById('rxPreview');
+  const hasAnyData = doctorName || patientName || tablets.length > 0;
+
+  if (!hasAnyData) {
+    preview.innerHTML = `
+      <div class="empty-preview">
+        <div class="empty-icon">📋</div>
+        <p>Fill in the form on the left to see your<br>prescription preview here in real time.</p>
+      </div>`;
+    return;
+  }
+
+  const tabletsHTML = tablets.map(t => {
+    const dosageBadges = [
+      t.morning ? `<div class="dosage-badge morning"><span class="dosage-icon">🌅</span>${t.morning} — Morning</div>` : '',
+      t.afternoon ? `<div class="dosage-badge afternoon"><span class="dosage-icon">☀️</span>${t.afternoon} — Afternoon</div>` : '',
+      t.night ? `<div class="dosage-badge night"><span class="dosage-icon">🌙</span>${t.night} — Night</div>` : '',
+    ].filter(Boolean).join('');
+
+    const foodMap = {
+      before: { cls: 'before', icon: '🍽', text: 'Before Food' },
+      after: { cls: 'after', icon: '✅', text: 'After Food' },
+      with: { cls: 'with', icon: '🥗', text: 'With Food' },
+    };
+    const fm = foodMap[t.food] || foodMap.after;
+    const foodBadge = `<span class="food-badge ${fm.cls}">${fm.icon} ${fm.text}</span>`;
+
+    const abbr = (t.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,3);
+
+    return `
+      <div class="rx-tablet">
+        <div class="tablet-visual">
+          <div class="tablet-pill-shape" style="background:${t.color||'#888'};width:52px;height:26px;border-radius:13px;font-size:10px;letter-spacing:0.5px;">
+            ${abbr}
+          </div>
+        </div>
+        <div class="rx-tablet-info">
+          <div class="rx-tablet-name">${t.name || '<em style="color:#aaa;font-weight:400;">Unnamed Tablet</em>'}</div>
+          ${t.description ? `<div class="rx-tablet-desc">${t.description}${t.duration ? ` &nbsp;·&nbsp; <strong>${t.duration}</strong>` : ''}</div>` : (t.duration ? `<div class="rx-tablet-desc"><strong>${t.duration}</strong></div>` : '')}
+          ${dosageBadges ? `<div class="rx-dosage-row">${dosageBadges}</div>` : ''}
+          ${foodBadge}
+        </div>
+      </div>`;
+  }).join('');
+
+  preview.innerHTML = `
+    <div class="rx-card">
+      <div class="rx-header">
+        <div class="rx-symbol">Rx</div>
+        <div class="rx-clinic">${clinicName || 'Clinic / Hospital'}</div>
+        <div class="rx-doctor">
+          <span>${doctorName ? 'Dr. ' + doctorName.replace(/^dr\.?\s*/i,'') : 'Doctor Name'}</span>
+          ${doctorSpec ? ` &nbsp;·&nbsp; <span>${doctorSpec}</span>` : ''}
+          ${doctorContact ? ` &nbsp;·&nbsp; <span>${doctorContact}</span>` : ''}
+        </div>
+      </div>
+
+      <div class="rx-info-bar">
+        <div class="rx-info-item">
+          <div class="rx-info-label">Patient</div>
+          <div class="rx-info-value">${patientName || '—'}</div>
+        </div>
+        <div class="rx-info-item">
+          <div class="rx-info-label">Age / Gender</div>
+          <div class="rx-info-value">${patientAge || '—'}</div>
+        </div>
+        <div class="rx-info-item">
+          <div class="rx-info-label">Date</div>
+          <div class="rx-info-value">${formatDate(rxDate) || '—'}</div>
+        </div>
+        <div class="rx-info-item">
+          <div class="rx-info-label">Diagnosis</div>
+          <div class="rx-info-value">${diagnosis || '—'}</div>
+        </div>
+      </div>
+
+      <div class="rx-body">
+        ${tablets.length > 0 ? `
+          <div class="rx-section-label">Prescribed Medications</div>
+          ${tabletsHTML}
+        ` : `<p style="color:#aaa;font-size:13px;text-align:center;padding:20px 0;">No medications added yet.</p>`}
+
+        ${notes ? `
+          <div class="rx-section-label" style="margin-top:18px;">Doctor's Instructions</div>
+          <div class="rx-notes-box">📝 ${notes}</div>
+        ` : ''}
+      </div>
+
+      <div class="rx-footer">
+        <div class="rx-footer-note">This prescription is computer generated. Valid for 30 days.</div>
+        <div class="rx-footer-sig">${doctorName ? 'Dr. ' + doctorName.replace(/^dr\.?\s*/i,'') : 'Doctor Signature'}</div>
+      </div>
+    </div>
+  `;
+}
+
+function clearAll() {
+  if (!confirm('Clear all prescription data?')) return;
+  ['doctorName','doctorSpec','clinicName','doctorContact','patientName','patientAge','rxDate','diagnosis','doctorNotes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  tablets = [];
+  tabletCounter = 0;
+  renderTabletForms();
+  updatePreview();
+}
+
+// Set today's date by default
+document.getElementById('rxDate').value = new Date().toISOString().split('T')[0];
+updatePreview();
+</script>
+</body>
+</html>
