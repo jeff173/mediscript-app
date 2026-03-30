@@ -1,0 +1,115 @@
+mport org.openqa.selenium.Alert;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.testng.Assert;
+import org.testng.annotations.*;
+
+import java.time.Duration;
+import java.nio.file.Paths;
+
+public class MediScriptTest {
+
+    private WebDriver driver;
+    private String fileUrl;
+
+    @BeforeClass
+    public void setUp() {
+        ChromeOptions options = new ChromeOptions();
+        driver = new ChromeDriver(options);
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
+        // Update this path to your local HTML file
+        fileUrl = Paths.get("C:/Users/YourName/Desktop/mediscript.html").toUri().toString();
+    }
+
+    @BeforeMethod
+    public void openApp() {
+        driver.get(fileUrl);
+    }
+
+    @Test
+    public void testPageLoadsSuccessfully() {
+        String title = driver.getTitle();
+        Assert.assertEquals(title, "MediScript — Smart Prescription Builder");
+
+        WebElement logo = driver.findElement(By.className("logo-text"));
+        Assert.assertTrue(logo.isDisplayed());
+        Assert.assertEquals(logo.getText(), "MediScript");
+    }
+
+    @Test
+    public void testFillPrescriptionAndPreviewUpdate() {
+        driver.findElement(By.id("doctorName")).sendKeys("Raman");
+        driver.findElement(By.id("doctorSpec")).sendKeys("General Physician");
+        driver.findElement(By.id("clinicName")).sendKeys("City Care Clinic");
+        driver.findElement(By.id("doctorContact")).sendKeys("REG12345");
+
+        driver.findElement(By.id("patientName")).sendKeys("Arun Kumar");
+        driver.findElement(By.id("patientAge")).sendKeys("45 / Male");
+        driver.findElement(By.id("diagnosis")).sendKeys("Fever");
+
+        driver.findElement(By.xpath("//button[contains(text(),'Add Medication')]")).click();
+
+        WebElement medName = driver.findElement(By.xpath("(//input[@placeholder='e.g. Paracetamol 500mg'])[1]"));
+        WebElement medDesc = driver.findElement(By.xpath("(//input[@placeholder='e.g. For fever & pain'])[1]"));
+        WebElement duration = driver.findElement(By.xpath("(//input[@placeholder='e.g. 5 days / 1 week / Continue'])[1]"));
+
+        medName.sendKeys("Paracetamol 500mg");
+        medDesc.sendKeys("For fever and pain");
+        duration.sendKeys("5 days");
+
+        WebElement morningInput = driver.findElement(By.xpath("(//input[@placeholder='e.g. 1 tablet'])[1]"));
+        morningInput.sendKeys("1 tablet");
+
+        WebElement afterFoodButton = driver.findElement(By.xpath("//button[contains(text(),'After Food')]"));
+        afterFoodButton.click();
+
+        driver.findElement(By.id("doctorNotes")).sendKeys("Drink plenty of water and rest well.");
+
+        WebElement preview = driver.findElement(By.id("rxPreview"));
+        String previewText = preview.getText();
+
+        Assert.assertTrue(previewText.contains("City Care Clinic"));
+        Assert.assertTrue(previewText.contains("Dr. Raman"));
+        Assert.assertTrue(previewText.contains("Arun Kumar"));
+        Assert.assertTrue(previewText.contains("45 / Male"));
+        Assert.assertTrue(previewText.contains("Fever"));
+        Assert.assertTrue(previewText.contains("Paracetamol 500mg"));
+        Assert.assertTrue(previewText.contains("For fever and pain"));
+        Assert.assertTrue(previewText.contains("5 days"));
+        Assert.assertTrue(previewText.contains("After Food"));
+        Assert.assertTrue(previewText.contains("Drink plenty of water and rest well."));
+    }
+
+    @Test
+    public void testClearAllFunctionality() {
+        driver.findElement(By.id("doctorName")).sendKeys("Raman");
+        driver.findElement(By.id("patientName")).sendKeys("Arun Kumar");
+
+        driver.findElement(By.xpath("//button[contains(text(),'Add Medication')]")).click();
+        driver.findElement(By.xpath("(//input[@placeholder='e.g. Paracetamol 500mg'])[1]"))
+                .sendKeys("Azithromycin");
+
+        driver.findElement(By.xpath("//button[contains(text(),'Clear All')]")).click();
+
+        Alert alert = driver.switchTo().alert();
+        alert.accept();
+
+        Assert.assertEquals(driver.findElement(By.id("doctorName")).getAttribute("value"), "");
+        Assert.assertEquals(driver.findElement(By.id("patientName")).getAttribute("value"), "");
+
+        WebElement preview = driver.findElement(By.id("rxPreview"));
+        Assert.assertTrue(preview.getText().contains("Fill in the form on the left"));
+    }
+
+    @AfterClass
+    public void tearDown() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
+}
