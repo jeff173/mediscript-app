@@ -1,0 +1,99 @@
+import os
+import unittest
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.alert import Alert
+
+
+class TestMediScript(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        chrome_options = Options()
+        cls.driver = webdriver.Chrome(options=chrome_options)
+        cls.driver.maximize_window()
+        cls.driver.implicitly_wait(10)
+
+        # Update this path to your local HTML file
+        file_path = os.path.abspath("mediscript.html")
+        cls.file_url = "file:///" + file_path.replace("\\", "/")
+
+    def setUp(self):
+        self.driver.get(self.file_url)
+
+    def test_page_loads_successfully(self):
+        self.assertEqual(self.driver.title, "MediScript — Smart Prescription Builder")
+
+        logo = self.driver.find_element(By.CLASS_NAME, "logo-text")
+        self.assertTrue(logo.is_displayed())
+        self.assertEqual(logo.text, "MediScript")
+
+    def test_fill_prescription_and_preview_update(self):
+        self.driver.find_element(By.ID, "doctorName").send_keys("Raman")
+        self.driver.find_element(By.ID, "doctorSpec").send_keys("General Physician")
+        self.driver.find_element(By.ID, "clinicName").send_keys("City Care Clinic")
+        self.driver.find_element(By.ID, "doctorContact").send_keys("REG12345")
+
+        self.driver.find_element(By.ID, "patientName").send_keys("Arun Kumar")
+        self.driver.find_element(By.ID, "patientAge").send_keys("45 / Male")
+        self.driver.find_element(By.ID, "diagnosis").send_keys("Fever")
+
+        self.driver.find_element(By.XPATH, "//button[contains(text(),'Add Medication')]").click()
+
+        med_name = self.driver.find_element(By.XPATH, "(//input[@placeholder='e.g. Paracetamol 500mg'])[1]")
+        med_desc = self.driver.find_element(By.XPATH, "(//input[@placeholder='e.g. For fever & pain'])[1]")
+        duration = self.driver.find_element(By.XPATH, "(//input[@placeholder='e.g. 5 days / 1 week / Continue'])[1]")
+
+        med_name.send_keys("Paracetamol 500mg")
+        med_desc.send_keys("For fever and pain")
+        duration.send_keys("5 days")
+
+        morning_input = self.driver.find_element(By.XPATH, "(//input[@placeholder='e.g. 1 tablet'])[1]")
+        morning_input.send_keys("1 tablet")
+
+        after_food_button = self.driver.find_element(By.XPATH, "//button[contains(text(),'After Food')]")
+        after_food_button.click()
+
+        self.driver.find_element(By.ID, "doctorNotes").send_keys("Drink plenty of water and rest well.")
+
+        preview_text = self.driver.find_element(By.ID, "rxPreview").text
+
+        self.assertIn("City Care Clinic", preview_text)
+        self.assertIn("Dr. Raman", preview_text)
+        self.assertIn("Arun Kumar", preview_text)
+        self.assertIn("45 / Male", preview_text)
+        self.assertIn("Fever", preview_text)
+        self.assertIn("Paracetamol 500mg", preview_text)
+        self.assertIn("For fever and pain", preview_text)
+        self.assertIn("5 days", preview_text)
+        self.assertIn("After Food", preview_text)
+        self.assertIn("Drink plenty of water and rest well.", preview_text)
+
+    def test_clear_all_functionality(self):
+        self.driver.find_element(By.ID, "doctorName").send_keys("Raman")
+        self.driver.find_element(By.ID, "patientName").send_keys("Arun Kumar")
+
+        self.driver.find_element(By.XPATH, "//button[contains(text(),'Add Medication')]").click()
+        self.driver.find_element(
+            By.XPATH, "(//input[@placeholder='e.g. Paracetamol 500mg'])[1]"
+        ).send_keys("Azithromycin")
+
+        self.driver.find_element(By.XPATH, "//button[contains(text(),'Clear All')]").click()
+
+        alert = Alert(self.driver)
+        alert.accept()
+
+        self.assertEqual(self.driver.find_element(By.ID, "doctorName").get_attribute("value"), "")
+        self.assertEqual(self.driver.find_element(By.ID, "patientName").get_attribute("value"), "")
+
+        preview_text = self.driver.find_element(By.ID, "rxPreview").text
+        self.assertIn("Fill in the form on the left", preview_text)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()
+
+
+if __name__ == "__main__":
+    unittest.main()
